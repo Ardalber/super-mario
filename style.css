@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    background: #5c94fc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.game-info {
+    display: none;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+}
+
+.info-item span {
+    color: #fff;
+    font-size: 10px;
+}
+
+#gameCanvas {
+    border: 4px solid #000;
+    background: #5c94fc;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 100;
+}
+
+.game-over h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #ff0000;
+}
+
+.game-over p {
+    font-size: 14px;
+}
+
+.hidden {
+    display: none;
+}

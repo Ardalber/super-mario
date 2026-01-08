@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mario Bros</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="info-item">
+                <span>MARIO</span>
+                <div id="score">000000</div>
+            </div>
+            <div class="info-item">
+                <span>COINS</span>
+                <div id="coins">×00</div>
+            </div>
+            <div class="info-item">
+                <span>WORLD</span>
+                <div>1-1</div>
+            </div>
+            <div class="info-item">
+                <span>TIME</span>
+                <div id="time">400</div>
+            </div>
+            <div class="info-item">
+                <span>LIVES</span>
+                <div id="lives">×3</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-over" class="game-over hidden">
+            <h1>GAME OVER</h1>
+            <p>Appuyez sur ESPACE pour recommencer</p>
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
