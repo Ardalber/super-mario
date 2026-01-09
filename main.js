@@ -31,6 +31,10 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && gameOver) {
         restartGame();
     }
+    // Lancer une boule de feu avec la touche S
+    if (e.code === 'KeyS' && player.hasPowerUp && !gameOver) {
+        shootFireball();
+    }
 });
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
@@ -45,10 +49,12 @@ const player = {
     velocityX: 0,
     velocityY: 0,
     speed: 3,
+    runSpeed: 6,
     jumpPower: 15,
     onGround: false,
     facingRight: true,
-    color: '#ff0000'
+    color: '#ff0000',
+    hasPowerUp: false
 };
 
 // Gravité
@@ -63,6 +69,15 @@ let enemies = [];
 
 // Pièces
 let coinItems = [];
+
+// Power-ups
+let powerUps = [];
+
+// Boules de feu
+let fireballs = [];
+
+// Boss - Marionnette de Saw
+let boss = null;
 
 // Fonction pour générer un niveau
 function generateLevel(world, level) {
@@ -114,6 +129,25 @@ function generateLevel(world, level) {
             { x: 2350, y: 310, width: 24, height: 24, collected: false },
             { x: 2550, y: 240, width: 24, height: 24, collected: false },
         ];
+        
+        // Power-up fleur de feu au début du niveau
+        powerUps = [
+            { x: 150, y: 370, width: 28, height: 28, collected: false, type: 'fire-flower' }
+        ];
+        
+        // Boss - Marionnette de Saw
+        boss = {
+            x: 2600,
+            y: 350,
+            width: 48,
+            height: 48,
+            velocityX: 2,
+            velocityY: 0,
+            health: 20,
+            maxHealth: 20,
+            alive: true,
+            type: 'saw-puppet'
+        };
     } else if (world === 1 && level === 2) {
         // Niveau 1-2 (nouveau design avec plus de tuyaux et blocs)
         platforms = [
@@ -179,6 +213,25 @@ function generateLevel(world, level) {
             { x: 2050, y: 240, width: 24, height: 24, collected: false },
             { x: 2450, y: 250, width: 24, height: 24, collected: false },
         ];
+        
+        // Power-up fleur de feu au début du niveau
+        powerUps = [
+            { x: 150, y: 370, width: 28, height: 28, collected: false, type: 'fire-flower' }
+        ];
+        
+        // Boss - Marionnette de Saw
+        boss = {
+            x: 2600,
+            y: 350,
+            width: 48,
+            height: 48,
+            velocityX: 2,
+            velocityY: 0,
+            health: 20,
+            maxHealth: 20,
+            alive: true,
+            type: 'saw-puppet'
+        };
     } else {
         // Niveau par défaut (réutiliser 1-1)
         generateLevel(1, 1);
@@ -187,12 +240,15 @@ function generateLevel(world, level) {
 
 // Fonction de mise à jour du joueur
 function updatePlayer() {
+    // Déterminer la vitesse (normale ou course avec Shift)
+    const currentSpeed = (keys['ShiftLeft'] || keys['ShiftRight']) ? player.runSpeed : player.speed;
+    
     // Mouvements horizontaux
     if (keys['ArrowLeft'] || keys['KeyA']) {
-        player.velocityX = -player.speed;
+        player.velocityX = -currentSpeed;
         player.facingRight = false;
     } else if (keys['ArrowRight'] || keys['KeyD']) {
-        player.velocityX = player.speed;
+        player.velocityX = currentSpeed;
         player.facingRight = true;
     } else {
         player.velocityX *= 0.8; // Friction
@@ -254,7 +310,27 @@ function updatePlayer() {
             coin.collected = true;
             coins++;
             score += 100;
+            
+            // Gagner une vie toutes les 5 pièces
+            if (coins % 5 === 0) {
+                lives++;
+                score += 500; // Bonus supplémentaire
+            }
+            
             updateUI();
+        }
+    });
+    
+    // Collecter les power-ups
+    powerUps.forEach(powerUp => {
+        if (!powerUp.collected && checkCollision(player, powerUp)) {
+            powerUp.collected = true;
+            if (powerUp.type === 'fire-flower') {
+                player.hasPowerUp = true;
+                player.color = '#ff6600'; // Couleur orange pour indiquer le power-up
+                score += 1000;
+                updateUI();
+            }
         }
     });
     
@@ -338,6 +414,126 @@ function checkCollision(rect1, rect2) {
            rect1.x + rect1.width > rect2.x &&
            rect1.y < rect2.y + rect2.height &&
            rect1.y + rect1.height > rect2.y;
+}
+
+// Fonction pour lancer une boule de feu
+function shootFireball() {
+    const fireballSpeed = 8;
+    const fireball = {
+        x: player.facingRight ? player.x + player.width : player.x - 16,
+        y: player.y + player.height / 2 - 8,
+        width: 16,
+        height: 16,
+        velocityX: player.facingRight ? fireballSpeed : -fireballSpeed,
+        velocityY: -2,
+        active: true
+    };
+    fireballs.push(fireball);
+}
+
+// Mise à jour des boules de feu
+function updateFireballs() {
+    fireballs.forEach((fireball, index) => {
+        if (!fireball.active) return;
+        
+        // Appliquer le mouvement
+        fireball.x += fireball.velocityX;
+        fireball.y += fireball.velocityY;
+        
+        // Gravité légère
+        fireball.velocityY += 0.3;
+        
+        // Rebond sur le sol
+        platforms.forEach(platform => {
+            if (checkCollision(fireball, platform)) {
+                const fireballBottom = fireball.y + fireball.height;
+                if (fireball.velocityY > 0 && fireballBottom <= platform.y + 20) {
+                    fireball.y = platform.y - fireball.height;
+                    fireball.velocityY = -4;
+                }
+            }
+        });
+        
+        // Collision avec les ennemis
+        enemies.forEach(enemy => {
+            if (enemy.alive && checkCollision(fireball, enemy)) {
+                enemy.alive = false;
+                fireball.active = false;
+                score += 200;
+                updateUI();
+            }
+        });
+        
+        // Collision avec le boss
+        if (boss && boss.alive && checkCollision(fireball, boss)) {
+            boss.health--;
+            fireball.active = false;
+            score += 100;
+            
+            if (boss.health <= 0) {
+                boss.alive = false;
+                score += 5000; // Gros bonus pour avoir battu le boss
+            }
+            
+            updateUI();
+        }
+        
+        // Supprimer si sort de l'écran
+        if (fireball.x < camera.x - 50 || fireball.x > camera.x + canvas.width + 50 || fireball.y > canvas.height) {
+            fireballs.splice(index, 1);
+        }
+    });
+}
+
+// Mise à jour du boss
+function updateBoss() {
+    if (!boss || !boss.alive) return;
+    
+    // Appliquer la gravité
+    boss.velocityY += gravity;
+    if (boss.velocityY > maxFallSpeed) {
+        boss.velocityY = maxFallSpeed;
+    }
+    
+    // Appliquer les mouvements
+    boss.x += boss.velocityX;
+    boss.y += boss.velocityY;
+    
+    // Inverse la direction aux bords du niveau
+    if (boss.x < 2400 || boss.x + boss.width > 2800) {
+        boss.velocityX *= -1;
+    }
+    
+    // Collision avec les plateformes
+    platforms.forEach(platform => {
+        if (checkCollision(boss, platform)) {
+            const bossBottom = boss.y + boss.height;
+            const bossRight = boss.x + boss.width;
+            const platformBottom = platform.y + platform.height;
+            const platformRight = platform.x + platform.width;
+            
+            // Collision par le haut (atterrissage)
+            if (boss.velocityY > 0 && bossBottom <= platform.y + 20) {
+                boss.y = platform.y - boss.height;
+                boss.velocityY = 0;
+            }
+            // Collision par les côtés (inverse la direction)
+            else if (bossRight > platform.x && boss.x < platformRight) {
+                boss.velocityX *= -1;
+                boss.x += boss.velocityX * 2;
+            }
+        }
+    });
+    
+    // Collision avec le joueur
+    if (checkCollision(player, boss)) {
+        lives--;
+        if (lives <= 0) {
+            endGame();
+        } else {
+            resetPlayerPosition();
+        }
+    }
 }
 
 // Mise à jour des ennemis
@@ -459,6 +655,120 @@ function drawPlatforms() {
     });
 }
 
+// Dessiner le boss
+function drawBoss() {
+    if (!boss || !boss.alive) return;
+    if (boss.x + boss.width < camera.x || boss.x > camera.x + canvas.width) return;
+    
+    const screenX = boss.x - camera.x;
+    const screenY = boss.y - camera.y;
+    
+    // Tête blanche (marionnette)
+    ctx.fillStyle = '#F5F5F5';
+    ctx.fillRect(screenX, screenY, boss.width, boss.height * 0.7);
+    
+    // Cheveux bouclés noirs
+    ctx.fillStyle = '#000';
+    ctx.fillRect(screenX, screenY, boss.width, boss.height * 0.15);
+    ctx.beginPath();
+    ctx.arc(screenX + 8, screenY + 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(screenX + 18, screenY + 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(screenX + 28, screenY + 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(screenX + 38, screenY + 5, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Yeux blancs
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(screenX + 10, screenY + 18, 10, 10);
+    ctx.fillRect(screenX + 28, screenY + 18, 10, 10);
+    
+    // Pupilles noires
+    ctx.fillStyle = '#000';
+    ctx.fillRect(screenX + 13, screenY + 21, 4, 4);
+    ctx.fillRect(screenX + 31, screenY + 21, 4, 4);
+    
+    // Spirales rouges sur les joues (icôniques de Saw)
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 2;
+    // Spirale gauche
+    ctx.beginPath();
+    ctx.arc(screenX + 12, screenY + 32, 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(screenX + 12, screenY + 32, 5, 0, Math.PI * 1.5);
+    ctx.stroke();
+    // Spirale droite
+    ctx.beginPath();
+    ctx.arc(screenX + 36, screenY + 32, 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(screenX + 36, screenY + 32, 5, 0, Math.PI * 1.5);
+    ctx.stroke();
+    
+    // Bouche en arc (sourire inquiétant)
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(screenX + boss.width / 2, screenY + 30, 8, 0, Math.PI);
+    ctx.stroke();
+    
+    // Corps (costume noir)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(screenX + 8, screenY + boss.height * 0.7, boss.width - 16, boss.height * 0.3);
+    
+    // Nœud papillon rouge
+    ctx.fillStyle = '#FF0000';
+    ctx.beginPath();
+    ctx.moveTo(screenX + boss.width / 2 - 6, screenY + boss.height * 0.7);
+    ctx.lineTo(screenX + boss.width / 2 - 8, screenY + boss.height * 0.75);
+    ctx.lineTo(screenX + boss.width / 2 - 6, screenY + boss.height * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(screenX + boss.width / 2 + 6, screenY + boss.height * 0.7);
+    ctx.lineTo(screenX + boss.width / 2 + 8, screenY + boss.height * 0.75);
+    ctx.lineTo(screenX + boss.width / 2 + 6, screenY + boss.height * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(screenX + boss.width / 2 - 3, screenY + boss.height * 0.72, 6, 6);
+    
+    // Barre de vie au-dessus de la tête
+    const healthBarWidth = 40;
+    const healthBarHeight = 6;
+    const healthBarX = screenX + boss.width / 2 - healthBarWidth / 2;
+    const healthBarY = screenY - 15;
+    
+    // Fond de la barre (rouge)
+    ctx.fillStyle = '#8B0000';
+    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+    
+    // Vie restante (vert/jaune/rouge selon la vie)
+    const healthPercent = boss.health / boss.maxHealth;
+    let healthColor = '#00FF00';
+    if (healthPercent < 0.3) healthColor = '#FF0000';
+    else if (healthPercent < 0.6) healthColor = '#FFA500';
+    
+    ctx.fillStyle = healthColor;
+    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercent, healthBarHeight);
+    
+    // Contour de la barre
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+    
+    // Texte de vie
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(boss.health + '/' + boss.maxHealth, screenX + boss.width / 2, healthBarY - 3);
+}
+
 // Dessiner les ennemis
 function drawEnemies() {
     enemies.forEach(enemy => {
@@ -478,6 +788,85 @@ function drawEnemies() {
         ctx.fillStyle = '#000';
         ctx.fillRect(screenX + 8, screenY + 10, 4, 4);
         ctx.fillRect(screenX + 20, screenY + 10, 4, 4);
+    });
+}
+
+// Dessiner les power-ups
+function drawPowerUps() {
+    powerUps.forEach(powerUp => {
+        if (powerUp.collected) return;
+        if (powerUp.x + powerUp.width < camera.x || powerUp.x > camera.x + canvas.width) return;
+        
+        const screenX = powerUp.x - camera.x;
+        const screenY = powerUp.y - camera.y;
+        
+        // Fleur de feu
+        if (powerUp.type === 'fire-flower') {
+            // Pétales rouges
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(screenX + 8, screenY + 10, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 20, screenY + 10, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 8, screenY + 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 20, screenY + 22, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Centre jaune
+            ctx.fillStyle = '#FFFF00';
+            ctx.beginPath();
+            ctx.arc(screenX + 14, screenY + 16, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Points blancs sur les pétales
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(screenX + 8, screenY + 10, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 20, screenY + 10, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 8, screenY + 22, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(screenX + 20, screenY + 22, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+}
+
+// Dessiner les boules de feu
+function drawFireballs() {
+    fireballs.forEach(fireball => {
+        if (!fireball.active) return;
+        if (fireball.x + fireball.width < camera.x || fireball.x > camera.x + canvas.width) return;
+        
+        const screenX = fireball.x - camera.x;
+        const screenY = fireball.y - camera.y;
+        
+        // Boule de feu avec effet de flamme
+        ctx.fillStyle = '#FF6600';
+        ctx.beginPath();
+        ctx.arc(screenX + fireball.width / 2, screenY + fireball.height / 2, fireball.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Centre plus clair
+        ctx.fillStyle = '#FFFF00';
+        ctx.beginPath();
+        ctx.arc(screenX + fireball.width / 2, screenY + fireball.height / 2, fireball.width / 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Point blanc au centre
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(screenX + fireball.width / 2, screenY + fireball.height / 2, 2, 0, Math.PI * 2);
+        ctx.fill();
     });
 }
 
@@ -588,6 +977,9 @@ function resetPlayerPosition() {
     player.y = 300;
     player.velocityX = 0;
     player.velocityY = 0;
+    player.hasPowerUp = false;
+    player.color = '#ff0000';
+    fireballs = [];
 }
 
 // Fin de niveau
@@ -672,6 +1064,16 @@ function restartGame() {
         }
     });
     
+    // Réinitialiser les power-ups
+    powerUps.forEach(powerUp => {
+        powerUp.collected = false;
+    });
+    
+    // Réinitialiser le joueur
+    player.hasPowerUp = false;
+    player.color = '#ff0000';
+    fireballs = [];
+    
     document.getElementById('game-over').classList.add('hidden');
     updateUI();
 }
@@ -719,20 +1121,28 @@ function gameLoop() {
         // Dessiner
         drawBackground();
         drawPlatforms();
+        drawPowerUps();
         drawCoins();
+        drawFireballs();
         drawEnemies();
+        drawBoss();
         drawPlayer();
         drawGameInfo();
         drawTransition();
     } else if (!gameOver && !levelComplete) {
         updatePlayer();
         updateEnemies();
+        updateBoss();
+        updateFireballs();
         
         // Dessiner
         drawBackground();
         drawPlatforms();
+        drawPowerUps();
         drawCoins();
+        drawFireballs();
         drawEnemies();
+        drawBoss();
         drawPlayer();
         drawGameInfo();
     } else if (levelComplete) {
@@ -751,16 +1161,22 @@ function gameLoop() {
         // Dessiner
         drawBackground();
         drawPlatforms();
+        drawPowerUps();
         drawCoins();
+        drawFireballs();
         drawEnemies();
+        drawBoss();
         drawPlayer();
         drawGameInfo();
     } else if (gameOver) {
         // Dessiner
         drawBackground();
         drawPlatforms();
+        drawPowerUps();
         drawCoins();
+        drawFireballs();
         drawEnemies();
+        drawBoss();
         drawPlayer();
         drawGameInfo();
     }
