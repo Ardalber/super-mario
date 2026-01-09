@@ -35,6 +35,18 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'KeyS' && player.hasPowerUp && !gameOver) {
         shootFireball();
     }
+    // Passer au niveau suivant en appuyant sur W au sommet du drapeau
+    if (e.code === 'KeyW' && !gameOver) {
+        const flagPole = platforms.find(p => p.type === 'flag-pole');
+        if (flagPole) {
+            // Vérifier si le joueur est au sommet du drapeau
+            if (player.x >= flagPole.x && player.x + player.width <= flagPole.x + flagPole.width &&
+                player.y < flagPole.y + 50) {
+                console.log('⬆️ W pressé au sommet du drapeau! Passage au niveau suivant');
+                levelComplete = true;
+            }
+        }
+    }
 });
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
@@ -161,12 +173,6 @@ function generateLevel(world, level) {
             { x: 850, y: 280, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
             { x: 900, y: 280, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
             { x: 950, y: 280, width: 32, height: 32, color: '#C19A6B', type: 'block' },
-            // Plateforme de briques
-            { x: 1100, y: 350, width: 32, height: 32, color: '#C19A6B', type: 'block' },
-            { x: 1132, y: 350, width: 32, height: 32, color: '#C19A6B', type: 'block' },
-            { x: 1164, y: 350, width: 32, height: 32, color: '#C19A6B', type: 'block' },
-            { x: 1196, y: 350, width: 32, height: 32, color: '#C19A6B', type: 'block' },
-            { x: 1228, y: 350, width: 32, height: 32, color: '#C19A6B', type: 'block' },
             // Tuyaux espacés
             { x: 1400, y: 366, width: 64, height: 64, color: '#00FF00', type: 'pipe' },
             { x: 1600, y: 366, width: 64, height: 64, color: '#00FF00', type: 'pipe' },
@@ -229,6 +235,207 @@ function generateLevel(world, level) {
             velocityY: 0,
             health: 20,
             maxHealth: 20,
+            alive: true,
+            type: 'saw-puppet'
+        };
+    } else if (world === 2 && level === 1) {
+        // Niveau 2-1 (Monde souterrain - plus difficile)
+        platforms = [
+            { x: 0, y: 430, width: levelWidth, height: 50, color: '#4a4a4a', type: 'ground' },
+            // Début avec des plateformes flottantes
+            { x: 200, y: 370, width: 96, height: 16, color: '#666', type: 'block' },
+            { x: 350, y: 340, width: 64, height: 16, color: '#666', type: 'block' },
+            { x: 470, y: 310, width: 64, height: 16, color: '#666', type: 'block' },
+            { x: 590, y: 280, width: 64, height: 16, color: '#666', type: 'block' },
+            // Zone de tuyaux
+            { x: 700, y: 366, width: 64, height: 64, color: '#006400', type: 'pipe' },
+            { x: 800, y: 340, width: 64, height: 90, color: '#006400', type: 'pipe' },
+            { x: 900, y: 310, width: 64, height: 120, color: '#006400', type: 'pipe' },
+            // Blocs de pièces suspendus
+            { x: 1050, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1082, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1114, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1146, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            // Platforme large
+            { x: 1200, y: 350, width: 160, height: 16, color: '#666', type: 'block' },
+            // Escalier montant
+            { x: 1400, y: 400, width: 32, height: 30, color: '#666', type: 'block' },
+            { x: 1432, y: 370, width: 32, height: 60, color: '#666', type: 'block' },
+            { x: 1464, y: 340, width: 32, height: 90, color: '#666', type: 'block' },
+            { x: 1496, y: 310, width: 32, height: 120, color: '#666', type: 'block' },
+            { x: 1528, y: 280, width: 32, height: 150, color: '#666', type: 'block' },
+            { x: 1560, y: 250, width: 32, height: 180, color: '#666', type: 'block' },
+            // Plateforme haute avec blocs
+            { x: 1650, y: 250, width: 200, height: 16, color: '#666', type: 'block' },
+            { x: 1700, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1732, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1764, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            // Fossé avec plateformes mobiles
+            { x: 1900, y: 350, width: 64, height: 16, color: '#666', type: 'block' },
+            { x: 2000, y: 320, width: 64, height: 16, color: '#666', type: 'block' },
+            { x: 2100, y: 290, width: 64, height: 16, color: '#666', type: 'block' },
+            // Zone finale avec tuyaux
+            { x: 2250, y: 366, width: 64, height: 64, color: '#006400', type: 'pipe' },
+            { x: 2400, y: 340, width: 64, height: 90, color: '#006400', type: 'pipe' },
+            // Plateforme du boss
+            { x: 2550, y: 370, width: 250, height: 16, color: '#666', type: 'block' },
+            // Drapeau
+            { x: 2850, y: 230, width: 16, height: 200, color: '#000', type: 'flag-pole' },
+            { x: 2850, y: 230, width: 80, height: 60, color: '#FFD700', type: 'flag' },
+        ];
+        
+        enemies = [
+            { x: 250, y: 338, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 400, y: 308, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 650, y: 398, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 850, y: 398, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1000, y: 398, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1250, y: 318, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1300, y: 318, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1700, y: 218, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1750, y: 218, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 1950, y: 318, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 2150, y: 258, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 2300, y: 398, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+            { x: 2450, y: 398, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#8B0000', alive: true, type: 'goomba' },
+        ];
+        
+        coinItems = [
+            { x: 230, y: 340, width: 24, height: 24, collected: false },
+            { x: 380, y: 310, width: 24, height: 24, collected: false },
+            { x: 500, y: 280, width: 24, height: 24, collected: false },
+            { x: 620, y: 250, width: 24, height: 24, collected: false },
+            { x: 750, y: 320, width: 24, height: 24, collected: false },
+            { x: 1100, y: 200, width: 24, height: 24, collected: false },
+            { x: 1280, y: 320, width: 24, height: 24, collected: false },
+            { x: 1600, y: 220, width: 24, height: 24, collected: false },
+            { x: 1730, y: 150, width: 24, height: 24, collected: false },
+            { x: 1930, y: 320, width: 24, height: 24, collected: false },
+            { x: 2050, y: 290, width: 24, height: 24, collected: false },
+            { x: 2130, y: 260, width: 24, height: 24, collected: false },
+            { x: 2350, y: 300, width: 24, height: 24, collected: false },
+            { x: 2650, y: 340, width: 24, height: 24, collected: false },
+            { x: 2750, y: 340, width: 24, height: 24, collected: false },
+        ];
+        
+        // Power-up fleur de feu au début du niveau
+        powerUps = [
+            { x: 150, y: 370, width: 28, height: 28, collected: false, type: 'fire-flower' },
+            { x: 1730, y: 160, width: 28, height: 28, collected: false, type: 'fire-flower' }
+        ];
+        
+        // Boss plus fort pour le niveau 2
+        boss = {
+            x: 2650,
+            y: 320,
+            width: 56,
+            height: 56,
+            velocityX: 3,
+            velocityY: 0,
+            health: 30,
+            maxHealth: 30,
+            alive: true,
+            type: 'saw-puppet'
+        };
+    } else if (world === 2 && level === 2) {
+        // Niveau 2-2 (Château dans les nuages - très difficile)
+        platforms = [
+            { x: 0, y: 430, width: levelWidth, height: 50, color: '#87CEEB', type: 'ground' },
+            // Platformes nuage au début
+            { x: 150, y: 380, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 250, y: 350, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 350, y: 320, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 450, y: 300, width: 96, height: 16, color: '#FFF', type: 'block' },
+            // Tour de château 1
+            { x: 600, y: 280, width: 80, height: 80, color: '#D2B48C', type: 'block' },
+            { x: 620, y: 240, width: 40, height: 40, color: '#8B4513', type: 'block' },
+            { x: 630, y: 210, width: 20, height: 30, color: '#8B4513', type: 'block' },
+            // Pont
+            { x: 720, y: 350, width: 200, height: 16, color: '#8B4513', type: 'block' },
+            // Blocs flottants avec pièces
+            { x: 950, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 982, y: 220, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1014, y: 250, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            // Escalier montant
+            { x: 1100, y: 400, width: 32, height: 30, color: '#8B4513', type: 'block' },
+            { x: 1132, y: 370, width: 32, height: 60, color: '#8B4513', type: 'block' },
+            { x: 1164, y: 340, width: 32, height: 90, color: '#8B4513', type: 'block' },
+            { x: 1196, y: 310, width: 32, height: 120, color: '#8B4513', type: 'block' },
+            { x: 1228, y: 280, width: 32, height: 150, color: '#8B4513', type: 'block' },
+            // Plateforme haute
+            { x: 1300, y: 250, width: 180, height: 16, color: '#FFF', type: 'block' },
+            { x: 1320, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1360, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            { x: 1400, y: 200, width: 32, height: 32, color: '#FFD700', type: 'coin-block' },
+            // Tour de château 2
+            { x: 1550, y: 260, width: 100, height: 100, color: '#D2B48C', type: 'block' },
+            { x: 1575, y: 220, width: 50, height: 40, color: '#8B4513', type: 'block' },
+            { x: 1590, y: 180, width: 20, height: 40, color: '#8B4513', type: 'block' },
+            // Plateformes flottantes de retour
+            { x: 1700, y: 300, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 1800, y: 280, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 1900, y: 260, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 2000, y: 280, width: 64, height: 16, color: '#FFF', type: 'block' },
+            { x: 2100, y: 300, width: 64, height: 16, color: '#FFF', type: 'block' },
+            // Château final
+            { x: 2250, y: 280, width: 150, height: 100, color: '#D2B48C', type: 'block' },
+            { x: 2280, y: 240, width: 50, height: 40, color: '#8B4513', type: 'block' },
+            { x: 2340, y: 240, width: 50, height: 40, color: '#8B4513', type: 'block' },
+            { x: 2295, y: 200, width: 25, height: 40, color: '#8B4513', type: 'block' },
+            { x: 2345, y: 200, width: 25, height: 40, color: '#8B4513', type: 'block' },
+            // Drapeau
+            { x: 2850, y: 230, width: 16, height: 200, color: '#000', type: 'flag-pole' },
+            { x: 2850, y: 230, width: 80, height: 60, color: '#FFD700', type: 'flag' },
+        ];
+        
+        enemies = [
+            { x: 200, y: 348, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 300, y: 318, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 400, y: 288, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 650, y: 248, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 750, y: 248, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 1000, y: 218, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 1350, y: 218, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 1600, y: 228, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 1750, y: 268, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 1900, y: 248, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 2100, y: 268, width: 32, height: 32, velocityX: 1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+            { x: 2350, y: 318, width: 32, height: 32, velocityX: -1, velocityY: 0, color: '#FF0000', alive: true, type: 'goomba' },
+        ];
+        
+        coinItems = [
+            { x: 170, y: 350, width: 24, height: 24, collected: false },
+            { x: 270, y: 320, width: 24, height: 24, collected: false },
+            { x: 370, y: 290, width: 24, height: 24, collected: false },
+            { x: 480, y: 270, width: 24, height: 24, collected: false },
+            { x: 700, y: 230, width: 24, height: 24, collected: false },
+            { x: 850, y: 320, width: 24, height: 24, collected: false },
+            { x: 1000, y: 200, width: 24, height: 24, collected: false },
+            { x: 1350, y: 150, width: 24, height: 24, collected: false },
+            { x: 1600, y: 200, width: 24, height: 24, collected: false },
+            { x: 1750, y: 250, width: 24, height: 24, collected: false },
+            { x: 1950, y: 230, width: 24, height: 24, collected: false },
+            { x: 2200, y: 250, width: 24, height: 24, collected: false },
+            { x: 2550, y: 300, width: 24, height: 24, collected: false },
+            { x: 2700, y: 300, width: 24, height: 24, collected: false },
+        ];
+        
+        // Power-ups
+        powerUps = [
+            { x: 150, y: 330, width: 28, height: 28, collected: false, type: 'fire-flower' },
+            { x: 1450, y: 200, width: 28, height: 28, collected: false, type: 'fire-flower' }
+        ];
+        
+        // Boss encore plus fort
+        boss = {
+            x: 2650,
+            y: 280,
+            width: 64,
+            height: 64,
+            velocityX: 4,
+            velocityY: 0,
+            health: 40,
+            maxHealth: 40,
             alive: true,
             type: 'saw-puppet'
         };
@@ -334,11 +541,7 @@ function updatePlayer() {
         }
     });
     
-    // Vérifier si le joueur touche le drapeau
-    const flagPole = platforms.find(p => p.type === 'flag-pole');
-    if (flagPole && checkCollision(player, flagPole) && !levelComplete) {
-        completeLevel();
-    }
+    // Passer au niveau suivant avec la touche N (voir keydown event)
 }
 
 // Gestion des collisions avec les plateformes
@@ -364,6 +567,19 @@ function handlePlatformCollision(platform) {
             platform.color = '#C19A6B';
             coins++;
             score += 200;
+            updateUI();
+            
+            // Animation de saut du bloc
+            platform.originalY = platform.originalY || platform.y;
+            platform.bounceOffset = -10;
+        }
+        // Bloc objectif (pour passer au niveau suivant)
+        else if (platform.type === 'goal-block' && !platform.broken) {
+            console.log('🎯 Bloc objectif cassé! Passage au niveau suivant');
+            platform.broken = true;
+            platform.color = '#999'; // Devient gris
+            score += 5000; // Gros bonus
+            levelComplete = true; // Déclenche le passage au niveau suivant
             updateUI();
             
             // Animation de saut du bloc
@@ -637,6 +853,36 @@ function drawPlatforms() {
             ctx.strokeRect(screenX + 4, screenY + 4, platform.width - 8, platform.height - 8);
         }
         
+        // Bloc objectif (magenta avec étoile)
+        if (platform.type === 'goal-block') {
+            if (!platform.broken) {
+                // Fond magenta
+                ctx.strokeStyle = '#FF00FF';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(screenX, screenY, platform.width, platform.height);
+                ctx.strokeRect(screenX + 6, screenY + 6, platform.width - 12, platform.height - 12);
+                
+                // Étoile jaune au centre
+                ctx.fillStyle = '#FFFF00';
+                const starX = screenX + platform.width / 2;
+                const starY = screenY + platform.height / 2;
+                drawStar(starX, starY, 5, 12, 6);
+                
+                // Texte
+                ctx.fillStyle = '#FFFF00';
+                ctx.font = 'bold 8px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('GOAL', starX, starY + 18);
+            } else {
+                // Bloc cassé (gris)
+                ctx.fillStyle = '#999';
+                ctx.fillRect(screenX, screenY, platform.width, platform.height);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(screenX, screenY, platform.width, platform.height);
+            }
+        }
+        
         // Drapeau
         if (platform.type === 'flag-pole') {
             ctx.fillStyle = '#000';
@@ -653,6 +899,24 @@ function drawPlatforms() {
             ctx.fill();
         }
     });
+}
+
+// Fonction pour dessiner une étoile
+function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = Math.PI / 2 * 3;
+    let step = Math.PI / spikes;
+    
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+        ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+        rot += step;
+        ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
+        rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+    ctx.fill();
 }
 
 // Dessiner le boss
@@ -981,27 +1245,24 @@ function resetPlayerPosition() {
     player.color = '#ff0000';
     fireballs = [];
 }
-
-// Fin de niveau
+// Fin de niveau - DEPRECATED (utiliser levelComplete = true à la place)
 function completeLevel() {
-    if (!levelComplete) {
-        levelComplete = true;
-        player.velocityX = 0;
-        
-        // Bonus de temps
-        const timeBonus = time * 50;
-        score += timeBonus;
-        
-        updateUI();
-    }
+    // Cette fonction n'est plus utilisée
+    // À la place, utilisez directement: levelComplete = true;
 }
 
 // Passer au niveau suivant
 function nextLevel() {
-    currentLevel++;
-    if (currentLevel > 4) {
+    // Après le niveau 1-1, passer directement au niveau 2-1
+    if (currentWorld === 1 && currentLevel === 1) {
+        currentWorld = 2;
         currentLevel = 1;
-        currentWorld++;
+    } else {
+        currentLevel++;
+        if (currentLevel > 4) {
+            currentLevel = 1;
+            currentWorld++;
+        }
     }
     
     levelComplete = false;
@@ -1104,7 +1365,22 @@ function drawTransition() {
         ctx.fillStyle = '#FFF';
         ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('WORLD ' + currentWorld + '-' + (currentLevel + 1), canvas.width / 2, canvas.height / 2);
+        
+        // Afficher le prochain niveau
+        let nextWorld = currentWorld;
+        let nextLvl = currentLevel;
+        if (currentWorld === 1 && currentLevel === 1) {
+            nextWorld = 2;
+            nextLvl = 1;
+        } else {
+            nextLvl = currentLevel + 1;
+            if (nextLvl > 4) {
+                nextLvl = 1;
+                nextWorld = currentWorld + 1;
+            }
+        }
+        
+        ctx.fillText('WORLD ' + nextWorld + '-' + nextLvl, canvas.width / 2, canvas.height / 2);
         ctx.font = 'bold 16px Arial';
         ctx.fillText('× ' + lives, canvas.width / 2, canvas.height / 2 + 40);
     }
@@ -1112,9 +1388,17 @@ function drawTransition() {
 
 // Boucle de jeu principale
 function gameLoop() {
+    // Si le niveau est complété, déclencher la transition
+    if (levelComplete && !levelTransition) {
+        console.log('⏳ Démarrage de la transition');
+        levelTransition = true;
+        transitionTimer = 0;
+    }
+    
     if (levelTransition) {
         transitionTimer++;
         if (transitionTimer > 120) {
+            console.log('➡️ Passage au prochain niveau');
             nextLevel();
         }
         
@@ -1146,18 +1430,7 @@ function gameLoop() {
         drawPlayer();
         drawGameInfo();
     } else if (levelComplete) {
-        // Animation de fin de niveau
-        const flagPole = platforms.find(p => p.type === 'flag-pole');
-        if (flagPole && player.y < flagPole.y + flagPole.height - player.height - 5) {
-            player.y += 3;
-        } else {
-            // Une fois en bas, démarrer la transition
-            if (!levelTransition) {
-                levelTransition = true;
-                transitionTimer = 0;
-            }
-        }
-        
+        // Passer directement à la transition
         // Dessiner
         drawBackground();
         drawPlatforms();
